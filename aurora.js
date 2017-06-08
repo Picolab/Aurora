@@ -1,40 +1,81 @@
 var mkKRLfn = require("../mkKRLfn");
 var request = require('request');
+var DEFAULT_AUTH = "qBSMzd5ANyWfWaxLXkxzyMZiJNkgosVe";
+var DEFAULT_HOST = '10.5.164.17:16021';
+var endpoint = "/api/v1/";
 
-var auth = "qBSMzd5ANyWfWaxLXkxzyMZiJNkgosVe";
-var host = '10.5.164.17:16021';
+makeRequest = function(options, callback) {
+  request(options, function(error, response, body) {
+    callback(error, response);
+  }); 
+};
 
+add_user = function(host, callback) {
+  var requestTokenOptions = {
+    method: 'POST',
+    url: 'http://' + host + endpoint + 'new'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+get_state_on = function(host, auth, callback) {
+  var requestTokenOptions = {
+    method: 'GET',
+    url: 'http://' + host + endpoint + auth + '/state/on'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+put_state_on = function(host, auth, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/state',
+    body: '{"on" : {"value":true}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+put_state_off = function(host, auth, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/state',
+    body: '{"on" : {"value":false}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+/*
 write = function(body) {
   var requestTokenOptions = {
     method: 'PUT',
     url: 'http://' + host + '/api/v1/' + auth + '/effects',
     body: body
   };
-  request(requestTokenOptions, function(error, response, body) {
-    if (error) {
-      console.log('Error: ' + error);
-      return;
-    }
-  }); 
 }
+*/
 
 
-module.exports = function(core){    
+var fns = {
+  isOn: mkKRLfn(["host","auth"],function (args, ctx , callback) {
+    get_state_on(args.host.toString(), args.auth.toString(), callback);
+  }),
+};
 
-return{
-    def:{
-        pinIntialized: mkKRLfn(["pin"],function (args, ctx , callback) {
-              callback(null, !!pins[args.pin.toString()]);
-        })
-     },
-     actions:{
-     servoWrite: mkKRLfn(["pin","value"] , function(args, ctx , callback){  
-               pin_str = args.pin.toString();       
-                if (!pins[pin_str]) {
-                      pins[pin_str] = new Gpio(args.pin, {mode: Gpio.OUTPUT});
-                }
-                callback(null,pins[pin_str].servoWrite(args.value));
-        }),
-     }
- }
+var actns = {
+  addUser: mkKRLfn(["host"] , function(args, ctx , callback) {
+    add_user(args.host.toString(), callback);
+  }),
+  turnOn: mkKRLfn(["host", "auth"] , function(args, ctx , callback) {
+    put_state_on(args.host.toString(), args.auth.toString(), callback);
+  }),
+  turnOff: mkKRLfn(["host", "auth"] , function(args, ctx , callback) {
+    put_state_off(args.host.toString(), args.auth.toString(), callback);
+  }),
+};
+
+module.exports = function(core) {
+  return {
+    def: fns,
+    actions: actns
+  };
 };
