@@ -6,7 +6,9 @@ var endpoint = "/api/v1/";
 
 makeRequest = function(options, callback) {
   request(options, function(error, response, body) {
-    callback(error, response);
+    if (body)
+      body = JSON.parse(body);
+    callback(error, body);
   }); 
 };
 
@@ -288,7 +290,7 @@ select_effect = function(host, auth, value, callback) {
   var requestTokenOptions = {
     method: 'PUT',
     url: 'http://' + host + endpoint + auth + '/effects',
-    body: '{"select" : ' + value + '}'
+    body: '{"select" : "' + value + '"}'
   };
   makeRequest(requestTokenOptions, callback);
 }
@@ -305,13 +307,20 @@ list_effects = function(host, auth, callback) {
 /// WRITE EFFECTS ///
 /////////////////////
 
+VALID_COMMANDS = ["add","delete","request","request all","display","display temp","rename"];
 
-
-
-
-
-
-
+write_effect = function(host, auth, command, data, name, callback) {
+  if (VALID_COMMANDS.indexOf(command.toLowerCase()) < 0) {
+    callback(new Error("Command " + command + " is not valid."));
+    return;
+  }
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "' + command + '", "animName" : "' + name + '", "animType" : "custom", "loop" : true, "animData" : "' + data + '"}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
 
 ////////////////////
 /// PANEL LAYOUT ///
@@ -335,20 +344,6 @@ panel_layout = function(host, auth, callback) {
 
 
 
-
-
-
-
-
-/*
-write = function(body) {
-  var requestTokenOptions = {
-    method: 'PUT',
-    url: 'http://' + host + '/api/v1/' + auth + '/effects',
-    body: body
-  };
-}
-*/
 
 
 var fns = {
@@ -438,6 +433,9 @@ var actns = {
   }),
   selectEffect: mkKRLfn(["host", "auth", "value"] , function(args, ctx , callback) {
     select_effect(args.host.toString(), args.auth.toString(), args.value.toString(), callback);
+  }),
+  writeEffect: mkKRLfn(["host", "auth", "command", "data", "name"] , function(args, ctx , callback) {
+    write_effect(args.host.toString(), args.auth.toString(), args.command.toString(), args.data.toString(), args.name.toString(), callback);
   }),
 };
 
