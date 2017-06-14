@@ -307,17 +307,74 @@ list_effects = function(host, auth, callback) {
 /// WRITE EFFECTS ///
 /////////////////////
 
-VALID_COMMANDS = ["add","delete","request","request all","display","display temp","rename"];
-
-write_effect = function(host, auth, command, data, name, callback) {
-  if (VALID_COMMANDS.indexOf(command.toLowerCase()) < 0) {
-    callback(new Error("Command " + command + " is not valid."));
-    return;
-  }
+select_temp_effect = function(host, auth, name, duration, callback) {
   var requestTokenOptions = {
     method: 'PUT',
     url: 'http://' + host + endpoint + auth + '/effects',
-    body: '{"write" : {"command" : "' + command + '", "animName" : "' + name + '", "animType" : "custom", "loop" : true, "animData" : "' + data + '"}}'
+    body: '{"write" : {"command" : "displayTemp", "animName" : "' + name + '", "duration" : ' + duration + '}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+add_effect = function(host, auth, name, data, loop, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "add", "animName" : "' + name + '", "animType" : "custom", "animData" : "' + data + '", "loop" : ' + loop + '}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+display_effect = function(host, auth, data, loop, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "display", "animType" : "custom", "animData" : "' + data + '", "loop" : ' + loop + '}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+display_temp_effect = function(host, auth, data, duration, loop, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "displayTemp", "duration" : ' + duration + ', "animType" : "custom", "animData" : "' + data + '", "loop" : ' + loop + '}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+delete_effect = function(host, auth, name, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "delete", "animName" : "' + name + '"}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+request_effect = function(host, auth, name, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "request", "animName" : "' + name + '"}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+request_all_effects = function(host, auth, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "requestAll"}}'
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
+rename_effect = function(host, auth, name, newName, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/effects',
+    body: '{"write" : {"command" : "rename", "animName" : "' + name + '", "newName" : "' + newName + '"}}'
   };
   makeRequest(requestTokenOptions, callback);
 }
@@ -373,6 +430,12 @@ var fns = {
   }),
   listEffects: mkKRLfn(["host","auth"],function (args, ctx , callback) {
     list_effects(args.host.toString(), args.auth.toString(), callback);
+  }),
+  requestEffect: mkKRLfn(["host","auth","name"],function (args, ctx , callback) {
+    request_effect(args.host.toString(), args.auth.toString(), args.name.toString(), callback);
+  }),
+  requestAllEffects: mkKRLfn(["host","auth"],function (args, ctx , callback) {
+    request_all_effects(args.host.toString(), args.auth.toString(), callback);
   }),
   orientation: mkKRLfn(["host","auth"],function (args, ctx , callback) {
     panel_orientation(args.host.toString(), args.auth.toString(), callback);
@@ -434,8 +497,23 @@ var actns = {
   selectEffect: mkKRLfn(["host", "auth", "value"] , function(args, ctx , callback) {
     select_effect(args.host.toString(), args.auth.toString(), args.value.toString(), callback);
   }),
-  writeEffect: mkKRLfn(["host", "auth", "command", "data", "name"] , function(args, ctx , callback) {
-    write_effect(args.host.toString(), args.auth.toString(), args.command.toString(), args.data.toString(), args.name.toString(), callback);
+  selectTempEffect: mkKRLfn(["host", "auth", "name", "duration"] , function(args, ctx , callback) {
+    select_temp_effect(args.host.toString(), args.auth.toString(), args.name.toString(), args.duration.toString(), callback);
+  }),
+  addEffect: mkKRLfn(["host", "auth", "name", "data", "loop"] , function(args, ctx , callback) {
+    add_effect(args.host.toString(), args.auth.toString(), args.name.toString(), args.data.toString(), args.loop.toString(), callback);
+  }),
+  displayEffect: mkKRLfn(["host", "auth", "data", "loop"] , function(args, ctx , callback) {
+    display_effect(args.host.toString(), args.auth.toString(), args.data.toString(), args.loop.toString(), callback);
+  }),
+  displayTempEffect: mkKRLfn(["host", "auth", "data", "duration", "loop"] , function(args, ctx , callback) {
+    display_temp_effect(args.host.toString(), args.auth.toString(), args.data.toString(), args.duration.toString(), args.loop.toString(), callback);
+  }),
+  deleteEffect: mkKRLfn(["host", "auth", "name"] , function(args, ctx , callback) {
+    delete_effect(args.host.toString(), args.auth.toString(), args.name.toString(), callback);
+  }),
+  renameEffect: mkKRLfn(["host", "auth", "name", "newName"] , function(args, ctx , callback) {
+    rename_effect(args.host.toString(), args.auth.toString(), args.name.toString(), args.newName.toString(), callback);
   }),
 };
 
