@@ -399,6 +399,18 @@ panel_layout = function(host, auth, callback) {
   makeRequest(requestTokenOptions, callback);
 }
 
+///////////////////////
+/// IDENTIFY AURORA ///
+///////////////////////
+
+identify_aurora = function(host, auth, callback) {
+  var requestTokenOptions = {
+    method: 'PUT',
+    url: 'http://' + host + endpoint + auth + '/identify',
+  };
+  makeRequest(requestTokenOptions, callback);
+}
+
 
 
 
@@ -514,6 +526,9 @@ var actns = {
   }),
   renameEffect: mkKRLfn(["host", "auth", "name", "newName"] , function(args, ctx , callback) {
     rename_effect(args.host.toString(), args.auth.toString(), args.name.toString(), args.newName.toString(), callback);
+  }),
+  identify: mkKRLfn(["host", "auth"] , function(args, ctx , callback) {
+    identify_aurora(args.host.toString(), args.auth.toString(), callback);
   }),
 };
 
