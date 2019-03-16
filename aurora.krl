@@ -1,6 +1,6 @@
 ruleset aurora_api {
   meta {
-    shares __testing, getHost, getAuth, getInfo, isOn, brightness, hue, saturation, colorTemperature, colorMode, currentEffect, listEffects, requestEffect, requestAllEffects, orientation, layout
+    shares __testing, getHost, getAuth, getInfo, isOn, brightness, hue, saturation, colorTemperature, colorMode, currentEffect, listEffects, requestEffect, requestAllEffects, orientation, layout, getAuroraEndpointUrl
   }
 
   global {
@@ -77,6 +77,10 @@ ruleset aurora_api {
     layout = function() {
       result = http:get(ent:host + endpoint + ent:auth + "/panelLayout/layout");
       result["content"].decode();
+    }
+    
+    getAuroraEndpointUrl = function() {
+      ent:host + endpoint + ent:auth + "/effects/effectsList"
     }
 
 
@@ -217,10 +221,11 @@ ruleset aurora_api {
                                { "name": "requestEffect", "args": [ "name" ] },
                                { "name": "requestAllEffects" },
                                { "name": "orientation" },
-                               { "name": "layout" }
+                               { "name": "layout" },
+                               {"name":"getAuroraEndpointUrl"}
                   ],
                   "events": [ {"domain": "aurora", "type": "host",
-                                "attrs": [ "http://host:port" ] },
+                                "attrs": [ "host" ] },
                               {"domain": "aurora", "type": "auth",
                                 "attrs": [ "auth" ] },
                               {"domain": "aurora", "type": "on",
@@ -280,28 +285,28 @@ ruleset aurora_api {
 
   rule setHost {
     select when aurora host
-    if (event:attr("host")) then 
-      send_directive("Host", "Host has been changed to " + event:attr("host"))
+    if (event:attr("host")) then
+      send_directive("Host", {"body": "Host has been changed to " + event:attr("host")})
     fired { ent:host := event:attr("host").klog(">>>> HOST <<<<") }
   }
 
   rule setHost2 {
     select when aurora host
     if not (event:attr("host")) then 
-      send_directive("Host", ent:host)
+      send_directive("Host", {"body":ent:host})
   }
 
   rule setAuth {
     select when aurora auth
     if (event:attr("auth")) then
-      send_directive("Auth", "Auth has been changed to " + event:attr("auth"))
+      send_directive("Auth", {"body":"Auth has been changed to " + event:attr("auth")})
     fired { ent:auth := event:attr("auth") }
   }
 
   rule setAuth2 {
     select when aurora auth
     if not (event:attr("auth")) then 
-      send_directive("Auth", ent:auth)
+      send_directive("Auth", {"body":ent:auth})
   }
 
   rule turnOn {
