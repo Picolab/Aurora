@@ -1,6 +1,8 @@
 ruleset aurora_api {
   meta {
     shares __testing, getHost, getAuth, getInfo, isOn, brightness, hue, saturation, colorTemperature, colorMode, currentEffect, listEffects, requestEffect, requestAllEffects, orientation, layout, getAuroraEndpointUrl
+    provides layout
+    
   }
 
   global {
@@ -59,11 +61,13 @@ ruleset aurora_api {
       result["content"].decode();
     }
 
+    //http:put is an action, needs to be refactored as an action
     requestEffect = function(name) {
       result = http:put(ent:host + endpoint + ent:auth + "/effects", body = "{\"write\" : {\"command\" : \"request\", \"animName\" : \"" + name + "\"}}");
       result["content"].decode();
     }
-
+    
+    //http:put is an action, needs to be refactored as an action
     requestAllEffects = function() {
       result = http:put(ent:host + endpoint + ent:auth + "/effects", body = "{\"write\" : {\"command\" : \"requestAll\"}}");
       result["content"].decode();
@@ -184,7 +188,7 @@ ruleset aurora_api {
     }
 
     addEffect = defaction(name, data, loop) {
-      http:put(ent:host + endpoint + ent:auth + "/effects", body = "{\"write\" : {\"command\" : \"add\", \"animName\" : \"" + name + "\", \"animType\" : \"custom\", \"animData\" : \"" + data + "\", \"loop\" : " + loop + "}}")
+      http:put(ent:host + endpoint + ent:auth + "/effects", body = "{\"write\" : {\"command\" : \"add\", \"animName\" : \"" + name + "\", \"animType\" : \"custom\", \"animData\" :\"" + data + "\", \"loop\" : " + loop + "}}")
     }
 
     displayEffect = defaction(data, loop) {
@@ -454,8 +458,8 @@ ruleset aurora_api {
   rule selectEffect {
     select when aurora effect
     every {
-      selectEffect(event:attr("name"))
-      send_directive("Switching to " + event:attr("name") + " effect", {"effect": event:attr("name")})
+      selectEffect(event:attr("name")) setting (response)
+      send_directive("Switching to " + event:attr("name") + " effect" + response, {"effect": event:attr("name")})
     }
   }
 
@@ -470,7 +474,7 @@ ruleset aurora_api {
   rule addEffect {
     select when aurora addEffect
     every {
-      addEffect(event:attr("name"), event:attr("data"), event:attr("loop"))
+      addEffect(event:attr("name"), event:attr("data"), event:attr("loop")) setting(response)
       send_directive("Effect " + event:attr("name") + " has been saved in Aurora", {"effect": event:attr("name")})
     }
   }
